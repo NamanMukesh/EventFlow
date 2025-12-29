@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6
+      minlength: 6,
+      select: false
     },
 
     role: {
@@ -42,4 +43,5 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;
