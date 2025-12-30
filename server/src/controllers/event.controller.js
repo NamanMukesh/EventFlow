@@ -20,7 +20,7 @@ const getAllEvents = async (req, res) => {
 
     return res
     .status(200)
-    .json({success: true, events: events.length, message: "Events fetched successfully"})
+    .json({success: true, events, count: events.length, message: "Events fetched successfully"})
   } catch (error) {
     return res
       .status(500)
