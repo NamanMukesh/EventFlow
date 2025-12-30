@@ -6,6 +6,8 @@ import PublicRoute from "./components/PublicRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
+import Booking from "./pages/Booking";
 
 function App() {
   return (
@@ -29,12 +31,14 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/events" element={<Events />} />
+          <Route path="/events/:id" element={<EventDetail />} />
           <Route
-            path="/events"
+            path="/events/:id/book"
             element={
-              <PublicRoute>
-                <Events />
-              </PublicRoute>
+              <ProtectedRoute>
+                <Booking />
+              </ProtectedRoute>
             }
           />
         </Routes>
