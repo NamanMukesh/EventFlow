@@ -30,7 +30,7 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-export const isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res
       .status(403)
