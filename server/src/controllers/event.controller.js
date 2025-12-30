@@ -125,6 +125,7 @@ const updateEvent = async (req, res) => {
     return res
     .status(200)
     .json({success: true, event: updatedEvent, message: "Event updated successfully"})
+    
   } catch (error) {
     return res
       .status(500)
