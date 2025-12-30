@@ -6,6 +6,7 @@ import authRoute from "./src/routes/auth.route.js";
 import eventRoute from "./src/routes/event.route.js";
 import bookingRoute from "./src/routes/booking.route.js";
 import paymentRoute, { stripeWebhook } from "./src/routes/payment.route.js";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,8 +19,14 @@ app.post(
   stripeWebhook
 );
 
+const allowedOrigins = [
+  "http://localhost:5173", // Vite
+  process.env.FRONTEND_URL
+];
+
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({credentials: true, origin: allowedOrigins}));
 
 // API Routes
 app.use("/api/auth", authRoute);
