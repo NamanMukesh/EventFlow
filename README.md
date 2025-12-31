@@ -2,8 +2,6 @@
 
 A full-stack MERN (MongoDB, Express.js, React, Node.js) application for event booking and management with secure payment processing via Stripe.
 
-![EventFlow Logo](client/public/eventflow-logo.svg)
-
 ## 📋 Table of Contents
 
 - [Features](#features)
@@ -64,7 +62,7 @@ A full-stack MERN (MongoDB, Express.js, React, Node.js) application for event bo
 Before you begin, ensure you have the following installed:
 
 - **Node.js** (v18.0.0 or higher)
-- **npm** (v9.0.0 or higher) or **yarn**
+- **npm** (v9.0.0 or higher)
 - **MongoDB** (v6.0.0 or higher) - Local installation or MongoDB Atlas account
 - **Git** - For version control
 - **ngrok** - For Stripe webhook testing (optional but recommended)
@@ -102,26 +100,17 @@ EventFlow/
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone `https://github.com/NamanMukesh/EventFlow`
 cd EventFlow
 ```
 
 ### 2. Backend Setup
 
 ```bash
-# Navigate to server directory
+
 cd server
-
-# Install dependencies
 npm install
-
-# Create .env file (see Environment Variables section)
-# Copy the example below and fill in your values
-
-# Start the server
-npm run server  # Development mode with nodemon
-# OR
-npm start      # Production mode
+npm run server
 ```
 
 The backend server will run on `http://localhost:5000`
@@ -129,33 +118,13 @@ The backend server will run on `http://localhost:5000`
 ### 3. Frontend Setup
 
 ```bash
-# Navigate to client directory (from project root)
+
 cd client
-
-# Install dependencies
 npm install
-
-# Create .env file (see Environment Variables section)
-
-# Start the development server
 npm run dev
 ```
 
-The frontend will run on `http://localhost:5173` (or another port if 5173 is taken)
-
-### 4. Database Setup
-
-#### Option A: MongoDB Atlas (Cloud)
-1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a new cluster
-3. Get your connection string
-4. Add it to `server/.env` as `MONGODB_URI`
-
-#### Option B: Local MongoDB
-1. Install MongoDB locally
-2. Start MongoDB service
-3. Use connection string: `mongodb://localhost:27017`
-4. Add it to `server/.env` as `MONGODB_URI`
+The frontend will run on `http://localhost:5173`
 
 ## 🔐 Environment Variables
 
@@ -169,8 +138,6 @@ PORT=5000
 NODE_ENV=development
 
 # MongoDB Connection
-MONGODB_URI=mongodb://localhost:27017
-# OR for MongoDB Atlas:
 # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
 
 # JWT Secret (generate a strong random string)
@@ -198,43 +165,22 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
 
 ## ▶️ Running the Application
 
-### Development Mode
-
-1. **Start MongoDB** (if using local installation)
-   ```bash
-   # Windows
-   net start MongoDB
-   
-   # macOS/Linux
-   sudo systemctl start mongod
-   ```
-
-2. **Start Backend Server**
+1. **Start Backend Server**
    ```bash
    cd server
    npm run server
    ```
 
-3. **Start Frontend** (in a new terminal)
+2. **Start Frontend** (in a new terminal)
    ```bash
    cd client
    npm run dev
    ```
 
-4. **Access the Application**
+3. **Access the Application**
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5000
 
-### Production Build
-
-```bash
-# Build frontend
-cd client
-npm run build
-
-# The build output will be in client/dist/
-# Serve it using a static file server or deploy to Vercel/Netlify
-```
 
 ## 🔔 Stripe Payment Setup with ngrok
 
@@ -243,13 +189,7 @@ For testing Stripe webhooks locally, you need to use ngrok to expose your local 
 ### Step 1: Install ngrok
 
 ```bash
-# Download from https://ngrok.com/download
-# Or using npm (globally)
 npm install -g ngrok
-
-# Or using Homebrew (macOS)
-brew install ngrok
-```
 
 ### Step 2: Get Stripe API Keys
 
