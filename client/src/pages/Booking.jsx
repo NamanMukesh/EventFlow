@@ -3,6 +3,7 @@ import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import API from "../utils/axios.util";
 import toast from "react-hot-toast";
+import Navbar from "../components/Navbar";
 
 const Booking = () => {
   const { id } = useParams();
@@ -22,7 +23,6 @@ const Booking = () => {
       return;
     }
 
-    // Get data from navigation state or fetch event
     if (location.state) {
       setEvent(location.state.event);
       setSelectedDate(location.state.selectedDate);
@@ -40,7 +40,7 @@ const Booking = () => {
         setEvent(response.data.event);
       }
     } catch (error) {
-      toast.error("Failed to load event");
+      toast.error(error.response?.data?.message || "Failed to load event");
       navigate("/events");
     }
   };
@@ -94,20 +94,7 @@ const Booking = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <button
-            onClick={() => navigate(`/events/${id}`)}
-            className="text-blue-600 hover:text-blue-700 flex items-center"
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Event
-          </button>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Confirm Your Booking</h1>

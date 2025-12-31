@@ -53,7 +53,13 @@ export const AuthProvider = ({ children }) => {
 
       if (response.data.success) {
         setUser(response.data.user);
-        toast.success("Login successful!");
+        if (response.data.user.role === "admin") {
+          toast.success("Logged in as Admin", {
+            duration: 3000,
+          });
+        } else {
+          toast.success("Login successful!");
+        }
         return { success: true, user: response.data.user };
       }
     } catch (err) {

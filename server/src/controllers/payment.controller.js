@@ -3,7 +3,17 @@ import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
 import Event from "../models/event.model.js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe - handle missing key gracefully
+let stripe;
+try {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn("STRIPE_SECRET_KEY not found. Payment features will be limited.");
+  } else {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+} catch (error) {
+  console.error("Stripe initialization error:", error);
+}
 
 // Create payment intent
 const createPaymentIntent = async (req, res) => {
@@ -14,6 +24,15 @@ const createPaymentIntent = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Booking ID is required" });
+    }
+
+    if (!stripe) {
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Payment service not configured. Please set STRIPE_SECRET_KEY in environment variables."
+        });
     }
 
     // Find booking and populate event
@@ -33,13 +52,13 @@ const createPaymentIntent = async (req, res) => {
         .json({ success: false, message: "Forbidden - Access denied" });
     }
 
-    // Check if booking is pending
-    if (booking.bookingStatus !== "pending") {
+    // Check if booking is already paid or cancelled
+    if (booking.paymentStatus === "paid" || booking.bookingStatus === "cancelled") {
       return res
         .status(400)
         .json({
           success: false,
-          message: `Booking is already ${booking.bookingStatus}`
+          message: `Booking is already ${booking.bookingStatus} or ${booking.paymentStatus}`
         });
     }
 
@@ -47,7 +66,16 @@ const createPaymentIntent = async (req, res) => {
     const totalAmount = booking.event.price * booking.seatsBooked;
     const amountInCents = Math.round(totalAmount * 100); // Stripe uses cents
 
-    // Create payment intent
+    if (amountInCents < 50) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Amount must be at least $0.50"
+        });
+    }
+
+    // Create payment intent (without auto-confirm - will be confirmed after card details)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: "usd",
@@ -57,7 +85,12 @@ const createPaymentIntent = async (req, res) => {
         eventId: booking.event._id.toString(),
         seatsBooked: booking.seatsBooked.toString()
       },
-      description: `Payment for ${booking.event.title} - ${booking.seatsBooked} seat(s)`
+      description: `Payment for ${booking.event.title} - ${booking.seatsBooked} seat(s)`,
+      // Disable redirect-based payment methods (card-only payments)
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: "never"
+      }
     });
 
     return res.status(200).json({
@@ -65,7 +98,8 @@ const createPaymentIntent = async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
       amount: totalAmount,
-      currency: "usd"
+      currency: "usd",
+      message: "Payment intent created successfully"
     });
   } catch (error) {
     console.error("Create payment intent error:", error);
@@ -96,16 +130,30 @@ const confirmPayment = async (req, res) => {
         });
     }
 
+    if (!stripe) {
+      await session.abortTransaction();
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: "Payment service not configured"
+        });
+    }
+
     // Verify payment intent with Stripe
+    // Payment should already be confirmed on frontend using Stripe.js
+    // Backend only verifies the status and updates booking
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
+    // Only proceed if payment has succeeded (confirmed on frontend)
     if (paymentIntent.status !== "succeeded") {
       await session.abortTransaction();
       return res
         .status(400)
         .json({
           success: false,
-          message: `Payment not completed. Status: ${paymentIntent.status}`
+          message: `Payment not completed. Status: ${paymentIntent.status}. Please complete payment first.`,
+          paymentStatus: paymentIntent.status
         });
     }
 

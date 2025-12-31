@@ -27,7 +27,7 @@ const createBooking = async (req, res) => {
     const bookingDate = new Date(eventDate);
     const dateString = bookingDate.toISOString().split("T")[0];
 
-    // Find event and lock it for update
+    // Finding event and locking it for update
     const event = await Event.findById(eventId).session(session);
 
     if (!event) {
@@ -37,7 +37,7 @@ const createBooking = async (req, res) => {
         .json({ success: false, message: "Event not found" });
     }
 
-    // Find the date entry
+    // Finding the date entry
     const dateEntry = event.dates.find(
       (d) => d.date.toISOString().split("T")[0] === dateString
     );
@@ -49,7 +49,7 @@ const createBooking = async (req, res) => {
         .json({ success: false, message: "Date not available for this event" });
     }
 
-    // Find the slot
+    // Finding the slot
     const slot = dateEntry.slots.find((s) => s.time === slotTime);
 
     if (!slot) {
@@ -59,7 +59,7 @@ const createBooking = async (req, res) => {
         .json({ success: false, message: "Time slot not available" });
     }
 
-    // Check availability
+    // Checking availability
     if (slot.availableSeats < seatsBooked) {
       await session.abortTransaction();
       return res
@@ -71,11 +71,11 @@ const createBooking = async (req, res) => {
         });
     }
 
-    // Decrement available seats atomically
+    // Decrementing available seats atomically
     slot.availableSeats -= seatsBooked;
     await event.save({ session });
 
-    // Create booking with pending status
+    // Creating booking with pending status
     const booking = await Booking.create([{
       user: req.user._id,
       event: eventId,
@@ -86,7 +86,7 @@ const createBooking = async (req, res) => {
       bookingStatus: "pending"
     }], { session });
 
-    // Commit transaction
+    // Committing transaction
     await session.commitTransaction();
 
     const populatedBooking = await Booking.findById(booking[0]._id)
@@ -109,7 +109,7 @@ const createBooking = async (req, res) => {
   }
 };
 
-// Get user's bookings
+// Getting user's bookings
 const getUserBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
@@ -128,7 +128,7 @@ const getUserBookings = async (req, res) => {
   }
 };
 
-// Get single booking
+// Getting single booking
 const getBookingById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -143,7 +143,7 @@ const getBookingById = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
-    // Check if user owns the booking or is admin
+    // Checking if user owns the booking or is admin
     if (booking.user._id.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res
         .status(403)
@@ -161,7 +161,7 @@ const getBookingById = async (req, res) => {
   }
 };
 
-// Cancel booking
+// Cancelling booking
 const cancelBooking = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -178,7 +178,7 @@ const cancelBooking = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
-    // Check if user owns the booking or is admin
+    // Checking if user owns the booking or is admin
     if (booking.user.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       await session.abortTransaction();
       return res
@@ -193,7 +193,7 @@ const cancelBooking = async (req, res) => {
         .json({ success: false, message: "Booking is already cancelled" });
     }
 
-    // Update booking status atomically
+    // Updating booking status atomically
     // If booking was pending, mark payment as failed
     if (booking.bookingStatus === "pending") {
       booking.paymentStatus = "failed";
@@ -202,7 +202,7 @@ const cancelBooking = async (req, res) => {
     booking.bookingStatus = "cancelled";
     await booking.save({ session });
 
-    // Refund seats to event availability
+    // Refunding seats to event availability
     const event = await Event.findById(booking.event).session(session);
     
     if (event) {
@@ -222,7 +222,7 @@ const cancelBooking = async (req, res) => {
       }
     }
 
-    // Commit transaction
+    // Committing transaction
     await session.commitTransaction();
 
     return res.status(200).json({
@@ -240,7 +240,7 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-// Confirm booking after payment success
+// Confirming booking after payment success
 const confirmBooking = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -265,7 +265,7 @@ const confirmBooking = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
-    // Check if booking is in pending status
+    // Checking if booking is in pending status
     if (booking.bookingStatus !== "pending") {
       await session.abortTransaction();
       return res
@@ -276,13 +276,13 @@ const confirmBooking = async (req, res) => {
         });
     }
 
-    // Update booking status and payment info atomically
+    // Updating booking status and payment info atomically
     booking.bookingStatus = "confirmed";
     booking.paymentStatus = "paid";
     booking.paymentId = paymentId;
     await booking.save({ session });
 
-    // Commit transaction
+    // Committing transaction
     await session.commitTransaction();
 
     const populatedBooking = await Booking.findById(id)
@@ -305,7 +305,7 @@ const confirmBooking = async (req, res) => {
   }
 };
 
-// Get all bookings (Admin only)
+// Getting all bookings (Admin only)
 const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()

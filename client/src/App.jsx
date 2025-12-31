@@ -8,6 +8,12 @@ import Register from "./pages/Register";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Booking from "./pages/Booking";
+import Payment from "./pages/Payment";
+import MyBookings from "./pages/MyBookings";
+import AdminEvents from "./pages/admin/AdminEvents";
+import CreateEvent from "./pages/admin/CreateEvent";
+import EditEvent from "./pages/admin/EditEvent";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -38,6 +44,46 @@ function App() {
             element={
               <ProtectedRoute>
                 <Booking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/events"
+            element={
+              <AdminRoute>
+                <AdminEvents />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/events/create"
+            element={
+              <AdminRoute>
+                <CreateEvent />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/events/:id/edit"
+            element={
+              <AdminRoute>
+                <EditEvent />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/my-bookings"
+            element={
+              <ProtectedRoute>
+                <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings/:id/payment"
+            element={
+              <ProtectedRoute>
+                <Payment />
               </ProtectedRoute>
             }
           />

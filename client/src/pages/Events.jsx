@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
 import API from "../utils/axios.util";
 import toast from "react-hot-toast";
+import Navbar from "../components/Navbar";
 
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState("");
-  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const fetchEvents = useCallback(async () => {
@@ -45,42 +44,7 @@ const Events = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">EventFlow</h1>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <span className="text-gray-700">Hi, {user?.name || user?.email}</span>
-                  <button
-                    onClick={logout}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => navigate("/register")}
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                  >
-                    Sign Up
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12">

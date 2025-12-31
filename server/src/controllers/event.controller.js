@@ -57,7 +57,7 @@ const createEvent = async (req, res) => {
   try {
     const { title, description, category, location, price, dates } = req.body;
 
-    if (!title?.trim() || !description?.trim() || !category?.trim() || !location?.trim() || !price?.trim() || !dates?.trim()) {
+    if (!title?.trim() || !description?.trim() || !category?.trim() || !location?.trim() || !price|| !dates) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
@@ -74,7 +74,7 @@ const createEvent = async (req, res) => {
       description: description.trim(),
       category: category.trim(),
       location: location.trim(),
-      price: price.trim(),
+      price: price,
       dates,
       createdBy: req.user._id
     });

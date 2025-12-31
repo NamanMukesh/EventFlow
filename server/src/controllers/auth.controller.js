@@ -12,6 +12,13 @@ const Register = async(req, res) => {
         .json({success: false, message: "All fields are required"})
     }
 
+    if (!process.env.JWT_SECRET) {
+        console.error("JWT_SECRET is not defined in environment variables");
+        return res
+        .status(500)
+        .json({success: false, message: "Server configuration error"})
+    }
+
     try {
         const existingUser = await User.findOne({email: email.toLowerCase()})
 
@@ -46,15 +53,17 @@ const Register = async(req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role: user.role,
             },
             message: "User Registered Successfully" 
         });
 
         
     } catch (error) {
+        console.error("Registration error:", error);
         return res
         .status(500)
-        .json({success: false, message: error.message})
+        .json({success: false, message: error.message || "Registration failed"})
     }
 }
 
@@ -66,6 +75,13 @@ const Login = async(req, res) => {
         return res
         .status(400)
         .json({success: false, message: "All fields required"})
+    }
+
+    if (!process.env.JWT_SECRET) {
+        console.error("JWT_SECRET is not defined in environment variables");
+        return res
+        .status(500)
+        .json({success: false, message: "Server configuration error"})
     }
 
     try {
@@ -107,14 +123,16 @@ const Login = async(req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role: user.role,
             },
             message: "User Logged In Successfully" 
         })
 
     } catch (error) {
+        console.error("Login error:", error);
         return res
         .status(500)
-        .json({success: false, message: error.message})
+        .json({success: false, message: error.message || "Login failed"})
     }
 }
 
