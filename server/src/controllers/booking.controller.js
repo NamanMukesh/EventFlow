@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
 import Event from "../models/event.model.js";
+import { sendCancellationEmail, sendPaymentConfirmationEmail } from "../utils/email.service.js";
 
 // Create booking
 const createBooking = async (req, res) => {
@@ -225,6 +226,21 @@ const cancelBooking = async (req, res) => {
     // Committing transaction
     await session.commitTransaction();
 
+    // Sending cancellation email
+    const populatedBooking = await Booking.findById(id)
+      .populate("user", "name email")
+      .populate("event", "title location price");
+    
+    if (populatedBooking) {
+      sendCancellationEmail(
+        populatedBooking,
+        populatedBooking.user,
+        populatedBooking.event
+      ).catch((error) => {
+        console.error("Failed to send cancellation email:", error);
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Booking cancelled successfully"
@@ -288,6 +304,15 @@ const confirmBooking = async (req, res) => {
     const populatedBooking = await Booking.findById(id)
       .populate("user", "name email")
       .populate("event", "title location price");
+
+    // Sending payment confirmation email
+    sendPaymentConfirmationEmail(
+      populatedBooking,
+      populatedBooking.user,
+      populatedBooking.event
+    ).catch((error) => {
+      console.error("Failed to send payment confirmation email:", error);
+    });
 
     return res.status(200).json({
       success: true,

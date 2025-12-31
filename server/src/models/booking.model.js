@@ -43,7 +43,17 @@ const bookingSchema = new mongoose.Schema(
     },
 
     paymentId: {
-      type: String // Stripe transaction ID
+      type: String 
+    },
+
+    reminder24hSent: {
+      type: Boolean,
+      default: false
+    },
+
+    reminder1hSent: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

@@ -7,11 +7,14 @@ import eventRoute from "./src/routes/event.route.js";
 import bookingRoute from "./src/routes/booking.route.js";
 import paymentRoute, { stripeWebhook } from "./src/routes/payment.route.js";
 import cors from "cors";
+import { initializeReminderScheduler } from "./src/utils/reminder.scheduler.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 await connectDB();
+
+initializeReminderScheduler();
 
 const allowedOrigins = [
   "http://localhost:5173", // Vite

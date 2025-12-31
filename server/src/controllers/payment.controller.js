@@ -2,6 +2,8 @@ import Stripe from "stripe";
 import mongoose from "mongoose";
 import Booking from "../models/booking.model.js";
 import Event from "../models/event.model.js";
+import { sendPaymentConfirmationEmail } from "../utils/email.service.js";
+import User from "../models/user.model.js";
 
 // Initialize Stripe - handle missing key gracefully
 let stripe;
@@ -75,7 +77,7 @@ const createPaymentIntent = async (req, res) => {
         });
     }
 
-    // Create payment intent (without auto-confirm - will be confirmed after card details)
+    // Creating payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: "usd",
@@ -86,7 +88,6 @@ const createPaymentIntent = async (req, res) => {
         seatsBooked: booking.seatsBooked.toString()
       },
       description: `Payment for ${booking.event.title} - ${booking.seatsBooked} seat(s)`,
-      // Disable redirect-based payment methods (card-only payments)
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: "never"
@@ -112,7 +113,7 @@ const createPaymentIntent = async (req, res) => {
   }
 };
 
-// Confirm payment (called after successful payment on frontend)
+// Confirming payment
 const confirmPayment = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -140,7 +141,7 @@ const confirmPayment = async (req, res) => {
         });
     }
 
-    // Verify payment intent with Stripe
+    // Verifying payment intent with Stripe
     // Payment should already be confirmed on frontend using Stripe.js
     // Backend only verifies the status and updates booking
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -157,7 +158,7 @@ const confirmPayment = async (req, res) => {
         });
     }
 
-    // Verify booking ID matches
+    // Verifying booking ID matches
     if (paymentIntent.metadata.bookingId !== bookingId) {
       await session.abortTransaction();
       return res
@@ -178,7 +179,7 @@ const confirmPayment = async (req, res) => {
         .json({ success: false, message: "Booking not found" });
     }
 
-    // Check if user owns the booking
+    // Checking if user owns the booking
     if (booking.user.toString() !== req.user._id.toString()) {
       await session.abortTransaction();
       return res
@@ -186,7 +187,7 @@ const confirmPayment = async (req, res) => {
         .json({ success: false, message: "Forbidden - Access denied" });
     }
 
-    // Check if booking is still pending
+    // Checking if booking is still pending
     if (booking.bookingStatus !== "pending") {
       await session.abortTransaction();
       return res
@@ -197,18 +198,27 @@ const confirmPayment = async (req, res) => {
         });
     }
 
-    // Update booking status and payment info atomically
+    // Updating booking status and payment info atomically
     booking.bookingStatus = "confirmed";
     booking.paymentStatus = "paid";
     booking.paymentId = paymentIntentId;
     await booking.save({ session });
 
-    // Commit transaction
+    // Committing transaction
     await session.commitTransaction();
 
     const populatedBooking = await Booking.findById(bookingId)
       .populate("user", "name email")
       .populate("event", "title location price");
+
+    // Sending payment confirmation email
+    sendPaymentConfirmationEmail(
+      populatedBooking,
+      populatedBooking.user,
+      populatedBooking.event
+    ).catch((error) => {
+      console.error("Failed to send payment confirmation email:", error);
+    });
 
     return res.status(200).json({
       success: true,
@@ -229,7 +239,7 @@ const confirmPayment = async (req, res) => {
   }
 };
 
-// Stripe webhook handler (for server-side payment confirmation)
+// Stripe webhook handler
 const stripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   const session = await mongoose.startSession();
@@ -282,6 +292,21 @@ const stripeWebhook = async (req, res) => {
       }
 
       await session.commitTransaction();
+
+      // Sending payment confirmation email
+      if (booking.bookingStatus === "confirmed") {
+        const populatedBooking = await Booking.findById(bookingId)
+          .populate("user", "name email")
+          .populate("event", "title location price");
+        
+        sendPaymentConfirmationEmail(
+          populatedBooking,
+          populatedBooking.user,
+          populatedBooking.event
+        ).catch((error) => {
+          console.error("Failed to send payment confirmation email:", error);
+        });
+      }
     } else if (event.type === "payment_intent.payment_failed") {
       const paymentIntent = event.data.object;
       const bookingId = paymentIntent.metadata.bookingId;
