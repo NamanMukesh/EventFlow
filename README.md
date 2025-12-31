@@ -11,10 +11,12 @@ A full-stack MERN (MongoDB, Express.js, React, Node.js) application for event bo
 - [Setup Instructions](#setup-instructions)
 - [Environment Variables](#environment-variables)
 - [Running the Application](#running-the-application)
+- [Brevo Email Setup](#brevo-email-setup)
 - [Stripe Payment Setup with ngrok](#stripe-payment-setup-with-ngrok)
 - [Screenshots](#screenshots)
 - [API Endpoints](#api-endpoints)
 - [Version Details](#version-details)
+- [Troubleshooting](#troubleshooting)
 
 ## ✨ Features
 
@@ -26,6 +28,7 @@ A full-stack MERN (MongoDB, Express.js, React, Node.js) application for event bo
 - 💳 **Secure Payments**: PCI-compliant payment processing via Stripe
 - 📋 **My Bookings**: View and manage all your bookings
 - ❌ **Cancel Bookings**: Cancel bookings with automatic seat refund
+- 📧 **Email Notifications**: Receive email confirmations and event reminders
 
 ### Admin Features
 - 👑 **Admin Panel**: Dedicated admin dashboard
@@ -54,6 +57,9 @@ A full-stack MERN (MongoDB, Express.js, React, Node.js) application for event bo
 - **JWT** 9.0.3 - Authentication tokens
 - **bcryptjs** 3.0.3 - Password hashing
 - **Stripe** 20.1.0 - Payment processing API
+- **nodemailer** 7.0.12 - Email sending library
+- **nodemailer-brevo-transport** - Brevo email transport
+- **node-cron** 4.2.1 - Task scheduler for email reminders
 - **CORS** 2.8.5 - Cross-origin resource sharing
 - **Cookie Parser** 1.4.7 - Cookie parsing middleware
 
@@ -66,6 +72,7 @@ Before you begin, ensure you have the following installed:
 - **MongoDB** (v6.0.0 or higher) - Local installation or MongoDB Atlas account
 - **Git** - For version control
 - **ngrok** - For Stripe webhook testing (optional but recommended)
+- **Brevo Account** - For email notifications (free tier: 300 emails/day)
 
 ## 📁 Project Structure
 
@@ -147,6 +154,10 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 
+# Brevo Email Configuration
+BREVO_API_KEY=your-brevo-api-key
+BREVO_SENDER_EMAIL=your-verified-email@example.com
+
 # Frontend URL (for CORS)
 FRONTEND_URL=http://localhost:5173
 ```
@@ -181,6 +192,54 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5000
 
+
+## 📧 Brevo Email Setup
+
+EventFlow uses Brevo (formerly Sendinblue) for sending email notifications and reminders.
+
+### Step 1: Create Brevo Account
+
+1. Sign up for a free account at [Brevo](https://www.brevo.com/)
+2. Verify your email address
+
+### Step 2: Get Your API Key
+
+1. Go to [Brevo Dashboard](https://app.brevo.com/)
+2. Navigate to **Settings** → **SMTP & API** → **API Keys** tab
+3. Click **"Generate a new API key"**
+4. Give it a name (e.g., "EventFlow App")
+5. Select permissions: **"Send emails"**
+6. Copy the API key immediately (you won't see it again!)
+
+### Step 3: Verify Sender Email
+
+1. Go to **Settings** → **Senders & IP**
+2. Click **"Add a sender"**
+3. Enter your email address
+4. Verify your email (check your inbox for verification link)
+
+### Step 4: Add to Environment Variables
+
+Add these to your `server/.env` file:
+
+```env
+BREVO_API_KEY=your-api-key-here
+BREVO_SENDER_EMAIL=your-verified-email@example.com
+```
+
+### Email Features
+
+- ✅ **Payment Confirmation**: Sent when payment is successfully processed
+- ✅ **Cancellation Email**: Sent when a booking is cancelled
+- ✅ **24-Hour Reminder**: Sent 24 hours before the event
+- ✅ **1-Hour Reminder**: Sent 1 hour before the event
+
+### Free Tier Limits
+
+Brevo's free tier includes:
+- **300 emails per day**
+- **Unlimited contacts**
+- **Email tracking and analytics**
 
 ## 🔔 Stripe Payment Setup with ngrok
 
@@ -331,6 +390,9 @@ mongoose: ^9.0.2
 jsonwebtoken: ^9.0.3
 bcryptjs: ^3.0.3
 stripe: ^20.1.0
+nodemailer: ^7.0.12
+nodemailer-brevo-transport: ^2.2.1
+node-cron: ^4.2.1
 cors: ^2.8.5
 cookie-parser: ^1.4.7
 dotenv: ^17.2.3

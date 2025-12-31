@@ -1,33 +1,50 @@
 import nodemailer from "nodemailer";
+import brevoTransport from "nodemailer-brevo-transport";
 
 const createTransporter = () => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER, 
-      pass: process.env.SMTP_PASS, 
-    },
-  });
+  const apiKey = process.env.BREVO_API_KEY;
+  
+  if (!apiKey) {
+    console.warn("⚠️ Brevo API key not configured.");
+    return null;
+  }
+
+  const transporter = nodemailer.createTransport(
+    new brevoTransport({
+      apiKey: apiKey
+    })
+  );
 
   return transporter;
 };
 
 // Send email function
-const sendEmail = async (to, subject, html, text) => {
+const sendEmail = async (to, subject, html, text, senderEmail = null, senderName = "EventFlow") => {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.warn("Email service not configured. SMTP credentials missing.");
+    const apiKey = process.env.BREVO_API_KEY || process.env.SMTP_PASS;
+    
+    if (!apiKey) {
+      console.warn("⚠️ Email service not configured. Brevo API key missing.");
       console.log("Would send email to:", to);
       console.log("Subject:", subject);
       return { success: false, message: "Email service not configured" };
     }
 
     const transporter = createTransporter();
+    if (!transporter) {
+      return { success: false, message: "Failed to create email transporter" };
+    }
+
+    const fromEmail = senderEmail || process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER;
+    
+    if (!fromEmail) {
+      return { success: false, message: "Sender email not configured" };
+    }
+
+    await transporter.verify();
 
     const mailOptions = {
-      from: `"EventFlow" <${process.env.SMTP_USER}>`,
+      from: `"${senderName}" <${fromEmail}>`,
       to,
       subject,
       text,
@@ -35,11 +52,13 @@ const sendEmail = async (to, subject, html, text) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
-    return { success: true, messageId: info.messageId };
+    console.log("Email sent successfully!");
+    console.log("Message ID:", info.messageId);
+    return { success: true, messageId: info.messageId, response: info.response };
   } catch (error) {
-    console.error("Error sending email:", error);
-    return { success: false, error: error.message };
+    console.error("Error response:", error.response);
+
+    return { success: false, error: error.message, code: error.code };
   }
 };
 
@@ -458,5 +477,7 @@ See you soon!
   return await sendEmail(user.email, subject, html, text);
 };
 
-export default { sendEmail, sendPaymentConfirmationEmail, sendCancellationEmail, send24HourReminderEmail, send1HourReminderEmail };
+// Export sendEmail as named export for testing
+export { sendEmail };
 
+export default { sendEmail, sendPaymentConfirmationEmail, sendCancellationEmail, send24HourReminderEmail, send1HourReminderEmail };
