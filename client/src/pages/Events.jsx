@@ -40,7 +40,7 @@ const Events = () => {
     navigate(`/events/${eventId}`);
   };
 
-  const categories = ["concert", "conference", "workshop", "sports", "other"];
+  const categories = ["Concert", "Conference", "Workshop", "Sports", "Stand-Up","Other"];
 
   return (
     <div className="min-h-screen bg-gray-50">
