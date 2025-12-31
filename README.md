@@ -337,18 +337,6 @@ Copy the HTTPS URL (e.g., `https://abc123.ngrok.io`)
 ![Register Page](./screenshots/register-page.png)
 *User registration page*
 
-### Admin Panel - Events List
-![Admin Events](./screenshots/admin-events.png)
-*Admin dashboard to manage all events*
-
-### Admin Panel - Create Event
-![Create Event](./screenshots/create-event.png)
-*Create new events with multiple dates and time slots*
-
-### Admin Panel - Edit Event
-![Edit Event](./screenshots/edit-event.png)
-*Edit existing event details*
-
 
 ## 🔌 API Endpoints
 
