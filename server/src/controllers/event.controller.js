@@ -11,7 +11,8 @@ const getAllEvents = async (req, res) => {
     }
 
     if (location) {
-      filter.location = location;
+      // Use case-insensitive partial match for location search
+      filter.location = { $regex: location, $options: "i" };
     }
 
     const events = await Event.find(filter)

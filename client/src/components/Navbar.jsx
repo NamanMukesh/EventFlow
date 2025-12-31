@@ -14,8 +14,17 @@ const Navbar = () => {
             to="/events" 
             className="text-2xl font-bold text-white hover:text-blue-100 transition flex items-center gap-2"
           >
-            <span className="text-3xl">🎫</span>
-            <span>EventFlow</span>
+            <div className="flex items-center gap-2">
+              <img
+                src="/eventflow-logo.svg"
+                alt="EventFlow Logo"
+                className="h-14 w-auto"
+              />
+              <span className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-3xl">
+                EventFlow
+              </span>
+            </div>
+
           </Link>
 
           {/* Navigation Links */}
